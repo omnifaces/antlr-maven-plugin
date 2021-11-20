@@ -1,1 +1,0 @@
-assert new File(basedir, 'target/it/scp-download/pom.xml').exists();

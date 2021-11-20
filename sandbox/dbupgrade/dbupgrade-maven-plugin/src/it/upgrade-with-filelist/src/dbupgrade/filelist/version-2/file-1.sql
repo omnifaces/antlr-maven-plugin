@@ -1,1 +1,0 @@
-create table table21 ( column1 varchar(256) );

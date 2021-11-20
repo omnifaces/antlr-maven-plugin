@@ -1,3 +1,0 @@
-clean
-process-classes
-process-classes

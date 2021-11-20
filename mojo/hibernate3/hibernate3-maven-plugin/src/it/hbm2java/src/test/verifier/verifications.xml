@@ -1,8 +1,0 @@
-<verifications>
-  <files>
-    <file>
-      <location>build.log</location>
-      <contains>org.hibernate.cfg.HbmBinder - Mapping class: it.Person -> person</contains>
-    </file>
-  </files>
-</verifications>

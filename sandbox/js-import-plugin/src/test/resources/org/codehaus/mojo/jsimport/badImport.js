@@ -1,3 +1,0 @@
-/**
- * @import com.bad:bad
- */

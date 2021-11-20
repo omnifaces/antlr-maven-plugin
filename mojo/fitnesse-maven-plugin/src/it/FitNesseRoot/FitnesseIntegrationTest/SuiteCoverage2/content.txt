@@ -1,4 +1,0 @@
-Couverture de test...
-
-
-^TestSimpleClass1

@@ -1,8 +1,0 @@
-<verifications>
-  <files>
-    <file>
-      <location>target/test-classes/testdb.script</location>
-      <contains>INSERT INTO PERSON</contains>
-    </file>
-  </files>
-</verifications>

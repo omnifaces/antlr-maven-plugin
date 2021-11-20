@@ -1,5 +1,0 @@
-<j:jelly xmlns:j="jelly:core" xmlns="jelly:ant" xmlns:x="jelly:xml">
-plugin groupId    : ${project.groupId}
-plugin artifactId : ${project.artifactId}
-${mojo.getLog().info(test)}
-</j:jelly>

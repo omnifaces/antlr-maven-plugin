@@ -1,5 +1,0 @@
-[[Test Coverage][.FitnesseIntegrationTest.SuiteCoverage]]
-[[Test Coverage2][.FitnesseIntegrationTest.SuiteCoverage2]]
-[[Test Coverage sécurisé][.FitnesseIntegrationTest.SuiteCoverage3]]
-[[Test Coverage UNIX][.FitnesseIntegrationTest.SuiteCoverage4]]
-[[Suite without convention][.FitnesseIntegrationTest.CoverageFive]]

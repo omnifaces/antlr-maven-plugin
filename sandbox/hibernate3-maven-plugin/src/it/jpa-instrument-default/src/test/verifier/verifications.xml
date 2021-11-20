@@ -1,8 +1,0 @@
-<verifications>
-  <files>
-    <file>
-      <location>target/classes/it/Person.class</location>
-      <contains>org/hibernate/bytecode/javassist/FieldHandler</contains>
-    </file>
-  </files>
-</verifications>

@@ -1,8 +1,0 @@
-<verifications>
-  <files>
-    <file>
-      <location>target/classes/testdb.script</location>
-      <contains>REVINFO</contains>
-    </file>
-  </files>
-</verifications>

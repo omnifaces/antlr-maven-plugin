@@ -1,1 +1,0 @@
-return ["This is groovy"];

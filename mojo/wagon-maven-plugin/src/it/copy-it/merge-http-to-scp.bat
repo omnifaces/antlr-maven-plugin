@@ -1,1 +1,0 @@
-mvn -e org.codehaus.mojo:wagon-maven-plugin:1.0-beta-1:merge-maven-repos -Dwagon.source=http://people.apache.org/~olamy/staging-repo -Dwagon.target=scpexe://localhost/home/%USERNAME%/maven-repo -Djava.io.tmpdir=target -Dwagon.optimize=true
