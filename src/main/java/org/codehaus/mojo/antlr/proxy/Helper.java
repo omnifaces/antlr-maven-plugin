@@ -48,10 +48,10 @@ public class Helper {
     private final Class<?> antlrOptionClass;
     private final Class<?> antlrIndexedVectorClass;
 
-    public Helper(Artifact antlrArtifact) throws MojoExecutionException {
+    public Helper(final Artifact antlrArtifact) throws MojoExecutionException {
         try {
             this.antlrClassLoader = new URLClassLoader(new URL[] { antlrArtifact.getFile().toURL() }, ClassLoader.getSystemClassLoader());
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             throw new MojoExecutionException("Unable to resolve antlr:antlr artifact url", e);
         }
 
@@ -64,10 +64,10 @@ public class Helper {
         antlrIndexedVectorClass = loadAntlrClass("antlr.collections.impl.IndexedVector");
     }
 
-    private Class<?> loadAntlrClass(String className) throws MojoExecutionException {
+    private Class<?> loadAntlrClass(final String className) throws MojoExecutionException {
         try {
             return antlrClassLoader.loadClass(className);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             throw new MojoExecutionException("could not load Antlr class :" + className, e);
         }
     }

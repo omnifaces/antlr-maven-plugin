@@ -34,9 +34,9 @@ public class GrammarFile {
     private final String[] glibs;
 
     private String packageName;
-    private List<Grammar> grammars = new ArrayList<>();
+    private final List<Grammar> grammars = new ArrayList<>();
 
-    public GrammarFile(String id, String fileName, String[] glibs) {
+    public GrammarFile(final String id, final String fileName, final String[] glibs) {
         this.id = id;
         this.fileName = fileName;
         this.glibs = glibs;
@@ -58,11 +58,11 @@ public class GrammarFile {
         return packageName;
     }
 
-    void setPackageName(String packageName) {
+    void setPackageName(final String packageName) {
         this.packageName = packageName;
     }
 
-    void addGrammar(Grammar grammar) {
+    void addGrammar(final Grammar grammar) {
         grammars.add(grammar);
     }
 

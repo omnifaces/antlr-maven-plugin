@@ -26,7 +26,6 @@ import static org.codehaus.plexus.util.StringUtils.isEmpty;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -205,13 +204,12 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
         
         validateParameters();
 
-        Artifact antlrArtifact = locateAntlrArtifact();
-        MetadataExtracter metadataExtracter = new MetadataExtracter(this, new Helper(antlrArtifact));
-        XRef metadata = metadataExtracter.processMetadata(getGrammars());
+        final Artifact antlrArtifact = locateAntlrArtifact();
+        final MetadataExtracter metadataExtracter = new MetadataExtracter(this, new Helper(antlrArtifact));
+        final XRef metadata = metadataExtracter.processMetadata(getGrammars());
 
-        Iterator generationPlans = new GenerationPlanBuilder(this).buildGenerationPlans(metadata).iterator();
-        while (generationPlans.hasNext()) {
-            final GenerationPlan plan = (GenerationPlan) generationPlans.next();
+        for (final Object o : new GenerationPlanBuilder(this).buildGenerationPlans(metadata)) {
+            final GenerationPlan plan = (GenerationPlan) o;
             if (!plan.isOutOfDate()) {
                 getLog().info("grammar [" + plan.getId() + "] was up-to-date; skipping");
                 continue;
@@ -230,9 +228,8 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
     protected final Artifact locateAntlrArtifact() throws NoAntlrDependencyDefinedException {
         Artifact antlrArtifact = null;
         if (project.getCompileArtifacts() != null) {
-            Iterator projectArtifacts = project.getCompileArtifacts().iterator();
-            while (projectArtifacts.hasNext()) {
-                final Artifact artifact = (Artifact) projectArtifacts.next();
+            for (final Object o : project.getCompileArtifacts()) {
+                final Artifact artifact = (Artifact) o;
                 if ("antlr".equals(artifact.getGroupId())
                         && ("antlr".equals(artifact.getArtifactId()) || "antlr-all".equals(artifact.getArtifactId()))) {
                     antlrArtifact = artifact;
@@ -248,7 +245,7 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
         return antlrArtifact;
     }
 
-    protected void performGeneration(GenerationPlan plan, Artifact antlrArtifact) throws MojoExecutionException {
+    protected void performGeneration(final GenerationPlan plan, final Artifact antlrArtifact) throws MojoExecutionException {
         if (!plan.getGenerationDirectory().getParentFile().exists()) {
             plan.getGenerationDirectory().getParentFile().mkdirs();
         }
@@ -258,7 +255,7 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
         // Note: grammar file should be last
         // ----------------------------------------------------------------------
 
-        List<String> arguments = new LinkedList<>();
+        final List<String> arguments = new LinkedList<>();
         addArgIf(arguments, debug, "-debug");
         addArgIf(arguments, diagnostic, "-diagnostic");
         addArgIf(arguments, trace, "-trace");
@@ -271,12 +268,12 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
         arguments.add("-o");
         arguments.add(plan.getGenerationDirectory().getPath());
 
-        if (plan.getCollectedSuperGrammarIds().size() > 0) {
+        if (!plan.getCollectedSuperGrammarIds().isEmpty()) {
             arguments.add("-glib");
-            StringBuffer buffer = new StringBuffer();
-            Iterator<String> ids = plan.getCollectedSuperGrammarIds().iterator();
+            final StringBuilder buffer = new StringBuilder();
+            final Iterator<String> ids = plan.getCollectedSuperGrammarIds().iterator();
             while (ids.hasNext()) {
-                buffer.append(new File(sourceDirectory, (String) ids.next()));
+                buffer.append(new File(sourceDirectory, ids.next()));
                 if (ids.hasNext()) {
                     buffer.append(';');
                 }
@@ -286,20 +283,20 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
 
         arguments.add(plan.getSource().getPath());
 
-        String[] args = (String[]) arguments.toArray(new String[arguments.size()]);
+        final String[] args = arguments.toArray(new String[0]);
 
         if (plan.getImportVocabTokenTypesDirectory() != null && !plan.getImportVocabTokenTypesDirectory().equals(plan.getGenerationDirectory())) {
             // We need to spawn a new process to properly set up PWD
-            CommandLine commandLine = new CommandLine("java");
+            final CommandLine commandLine = new CommandLine("java");
             commandLine.addArgument("-classpath", false);
             commandLine.addArgument(generateClasspathForProcessSpawning(antlrArtifact), true);
             commandLine.addArgument("antlr.Tool", false);
             commandLine.addArguments(args, true);
-            DefaultExecutor executor = new DefaultExecutor();
+            final DefaultExecutor executor = new DefaultExecutor();
             executor.setWorkingDirectory(plan.getImportVocabTokenTypesDirectory());
             try {
                 executor.execute(commandLine);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 getLog().warn("Error spawning process to execute antlr tool : " + e.getMessage());
             }
 
@@ -320,15 +317,15 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
             System.setProperty("user.dir", plan.getImportVocabTokenTypesDirectory().getPath());
         }
 
-        PrintStream oldErr = System.err;
+        final PrintStream oldErr = System.err;
 
-        OutputStream errOS = new StringOutputStream();
-        PrintStream err = new PrintStream(errOS);
+        final OutputStream errOS = new StringOutputStream();
+        final PrintStream err = new PrintStream(errOS);
         System.setErr(err);
 
         try {
-            executeAntlrInIsolatedClassLoader((String[]) arguments.toArray(new String[0]), antlrArtifact);
-        } catch (RuntimeException e) {
+            executeAntlrInIsolatedClassLoader(arguments.toArray(new String[0]), antlrArtifact);
+        } catch (final RuntimeException e) {
             if (e.getMessage().contains("ANTLR Panic")) {
                 // ANTLR-12
                 // Now basically every ANTLR version could set different message, how to handle in generic way?
@@ -345,33 +342,33 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
             }
            
             System.setErr(oldErr);
-            System.err.println(errOS.toString());
+            System.err.println(errOS);
         }
     }
 
-    private String generateClasspathForProcessSpawning(Artifact antlrArtifact) {
+    private String generateClasspathForProcessSpawning(final Artifact antlrArtifact) {
         // todo : is maven by itself enough for the generation???
         return antlrArtifact.getFile().getPath();
     }
 
-    private void executeAntlrInIsolatedClassLoader(String[] args, Artifact antlrArtifact) throws MojoExecutionException {
-        try (URLClassLoader classLoader = new URLClassLoader(new URL[] { antlrArtifact.getFile().toURI().toURL() }, getSystemClassLoader())) {
+    private void executeAntlrInIsolatedClassLoader(final String[] args, final Artifact antlrArtifact) throws MojoExecutionException {
+        try (final URLClassLoader classLoader = new URLClassLoader(new URL[] { antlrArtifact.getFile().toURI().toURL() }, getSystemClassLoader())) {
 
             classLoader.loadClass("antlr.Tool")
-                       .getMethod("main", new Class[] { String[].class })
+                       .getMethod("main", String[].class)
                        .invoke(null, new Object[] { args });
             
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             throw new MojoExecutionException("Unable to resolve antlr:antlr artifact url", e);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             throw new MojoExecutionException("could not locate antlr.Tool class");
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             throw new MojoExecutionException("error locating antlt.Tool#main", e);
-        } catch (InvocationTargetException e) {
+        } catch (final InvocationTargetException e) {
             throw new MojoExecutionException("error perforing antlt.Tool#main", e.getTargetException());
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new MojoExecutionException("error perforing antlt.Tool#main", e);
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             e1.printStackTrace();
         }
     }
@@ -390,7 +387,7 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
      * @param b
      * @param value
      */
-    protected static void addArgIf(List<String> arguments, boolean b, String value) {
+    protected static void addArgIf(final List<String> arguments, final boolean b, final String value) {
         if (b) {
             arguments.add(value);
         }
@@ -402,19 +399,19 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
      * @return generated file
      * @throws IOException
      */
-    private File getGeneratedFile(String grammar, File outputDir) throws IOException {
+    private File getGeneratedFile(final String grammar, final File outputDir) throws IOException {
         String generatedFileName = null;
 
         String packageName = "";
 
-        BufferedReader in = new BufferedReader(new FileReader(grammar));
+        final BufferedReader in = new BufferedReader(new FileReader(grammar));
 
         String line;
 
         while ((line = in.readLine()) != null) {
             line = line.trim();
 
-            int extendsIndex = line.indexOf(" extends ");
+            final int extendsIndex = line.indexOf(" extends ");
 
             if (line.startsWith("class ") && extendsIndex > -1) {
                 generatedFileName = line.substring(6, extendsIndex).trim();
@@ -433,7 +430,7 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
 
         File genFile = null;
 
-        if ("".equals(packageName)) {
+        if (packageName.isEmpty()) {
             genFile = new File(outputDir, generatedFileName + ".java");
         } else {
             String packagePath = packageName.replace('.', File.separatorChar);
@@ -453,17 +450,16 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
      */
     private void validateParameters() throws MojoExecutionException {
         if ((isEmpty(grammars)) && ((grammarDefs == null) || (grammarDefs.length == 0))) {
-            StringBuffer msg = new StringBuffer();
-            msg.append("Antlr plugin parameters are invalid/missing.").append('\n');
-            msg.append("Inside the definition for plugin 'antlr-maven-plugin' specify the following:").append('\n');
-            msg.append('\n');
-            msg.append("<configuration>").append('\n');
-            msg.append("  <grammars>VALUE</grammars>").append('\n');
-            msg.append("- OR - ").append('\n');
-            msg.append("  <grammarDefs>VALUE</grammarDefs>").append('\n');
-            msg.append("</configuration>").append('\n');
+            final String msg = "Antlr plugin parameters are invalid/missing." + '\n' +
+                    "Inside the definition for plugin 'antlr-maven-plugin' specify the following:" + '\n' +
+                    '\n' +
+                    "<configuration>" + '\n' +
+                    "  <grammars>VALUE</grammars>" + '\n' +
+                    "- OR - " + '\n' +
+                    "  <grammarDefs>VALUE</grammarDefs>" + '\n' +
+                    "</configuration>" + '\n';
 
-            throw new MojoExecutionException(msg.toString());
+            throw new MojoExecutionException(msg);
         }
     }
 
@@ -476,14 +472,14 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
      * @return an array of grammar from <code>grammars</code> and <code>grammarDefs</code> variables
      */
     private org.codehaus.mojo.antlr.options.Grammar[] getGrammars() {
-        List<org.codehaus.mojo.antlr.options.Grammar> grammarList = new ArrayList<>();
-        Set<org.codehaus.mojo.antlr.options.Grammar> grammarSet = new HashSet<>();
+        final List<org.codehaus.mojo.antlr.options.Grammar> grammarList = new ArrayList<>();
+        final Set<org.codehaus.mojo.antlr.options.Grammar> grammarSet = new HashSet<>();
 
         if (StringUtils.isNotEmpty(grammars)) {
-            StringTokenizer st = new StringTokenizer(grammars, ", ");
+            final StringTokenizer st = new StringTokenizer(grammars, ", ");
 
             while (st.hasMoreTokens()) {
-                String currentGrammar = st.nextToken().trim();
+                final String currentGrammar = st.nextToken().trim();
 
                 if (StringUtils.isNotEmpty(currentGrammar)) {
                     // Check if some pattern has been used
@@ -494,19 +490,14 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
                                 .replaceAll("\\?", ".");
 
                         // Filter the source directory
-                        String[] dir = sourceDirectory.list(new FilenameFilter() {
-                            @Override
-                            public boolean accept(File dir, String s) {
-                                return Pattern.matches(transformedGrammar, s);
-                            }
-                        });
+                        final String[] dir = sourceDirectory.list((dir1, s) -> Pattern.matches(transformedGrammar, s));
 
                         if ((dir != null) && (dir.length != 0)) {
-                            for (int i = 0; i < dir.length; i++) {
+                            for (final String s : dir) {
                                 // Just add fles which are not in the set of files already seen.
-                                if (!grammarSet.contains(dir[i])) {
-                                    org.codehaus.mojo.antlr.options.Grammar grammar = new org.codehaus.mojo.antlr.options.Grammar();
-                                    grammar.setName(dir[i]);
+                                if (!grammarSet.contains(s)) {
+                                    final org.codehaus.mojo.antlr.options.Grammar grammar = new org.codehaus.mojo.antlr.options.Grammar();
+                                    grammar.setName(s);
 
                                     grammarList.add(grammar);
                                 }
@@ -514,7 +505,7 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
                         }
                     } else {
                         if (!grammarSet.contains(currentGrammar)) {
-                            org.codehaus.mojo.antlr.options.Grammar grammar = new org.codehaus.mojo.antlr.options.Grammar();
+                            final org.codehaus.mojo.antlr.options.Grammar grammar = new org.codehaus.mojo.antlr.options.Grammar();
                             grammar.setName(currentGrammar);
 
                             grammarList.add(grammar);
@@ -528,11 +519,11 @@ public abstract class AbstractAntlrMojo extends AbstractMojo implements Environm
             grammarList.addAll(asList(grammarDefs));
         }
 
-        return (org.codehaus.mojo.antlr.options.Grammar[]) grammarList.toArray(new org.codehaus.mojo.antlr.options.Grammar[0]);
+        return grammarList.toArray(new org.codehaus.mojo.antlr.options.Grammar[0]);
     }
 
     public static class NoAntlrDependencyDefinedException extends MojoExecutionException {
-        public NoAntlrDependencyDefinedException(String s) {
+        public NoAntlrDependencyDefinedException(final String s) {
             super(s);
         }
     }

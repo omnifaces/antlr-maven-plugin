@@ -35,15 +35,15 @@ public class GenerationPlan {
 
     private File importVocabTokenTypesDirectory;
     private boolean outOfDate;
-    private LinkedHashSet<String> collectedSuperGrammarIds = new LinkedHashSet<>();
+    private final LinkedHashSet<String> collectedSuperGrammarIds = new LinkedHashSet<>();
 
-    GenerationPlan(String id, File source, File generationDirectory, String[] glibIds) {
+    GenerationPlan(final String id, final File source, final File generationDirectory, final String[] glibIds) {
         this.id = id;
         this.source = source;
         this.generationDirectory = generationDirectory;
         if (glibIds != null) {
-            for (int i = 0; i < glibIds.length; i++) {
-                addSuperGrammarId(glibIds[i]);
+            for (final String glibId : glibIds) {
+                addSuperGrammarId(glibId);
             }
         }
     }
@@ -60,7 +60,7 @@ public class GenerationPlan {
         return generationDirectory;
     }
 
-    void addSuperGrammarId(String id) {
+    void addSuperGrammarId(final String id) {
         collectedSuperGrammarIds.add(id);
     }
 
@@ -72,7 +72,7 @@ public class GenerationPlan {
         return importVocabTokenTypesDirectory;
     }
 
-    void setImportVocabTokenTypesDirectory(File importVocabTokenTypesDirectory) {
+    void setImportVocabTokenTypesDirectory(final File importVocabTokenTypesDirectory) {
         this.importVocabTokenTypesDirectory = importVocabTokenTypesDirectory;
     }
 

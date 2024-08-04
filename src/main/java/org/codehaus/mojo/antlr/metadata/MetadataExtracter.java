@@ -31,50 +31,50 @@ public class MetadataExtracter {
     private final Environment environment;
     private final Class<?> antlrHierarchyClass;
 
-    public MetadataExtracter(Environment environment, Helper helper) throws MojoExecutionException {
+    public MetadataExtracter(final Environment environment, final Helper helper) throws MojoExecutionException {
         this.environment = environment;
         this.helper = helper;
         this.antlrHierarchyClass = helper.getAntlrHierarchyClass();
     }
 
-    public XRef processMetadata(org.codehaus.mojo.antlr.options.Grammar[] grammars) throws MojoExecutionException {
-        Object hierarchy;
-        Method readGrammarFileMethod;
-        Method getFileMethod;
+    public XRef processMetadata(final org.codehaus.mojo.antlr.options.Grammar[] grammars) throws MojoExecutionException {
+        final Object hierarchy;
+        final Method readGrammarFileMethod;
+        final Method getFileMethod;
         try {
-            Object antlrTool = helper.getAntlrToolClass().getDeclaredConstructor().newInstance();
+            final Object antlrTool = helper.getAntlrToolClass().getDeclaredConstructor().newInstance();
             hierarchy = antlrHierarchyClass.getConstructor(new Class[] { helper.getAntlrToolClass() })
-                                           .newInstance(new Object[] { antlrTool });
+                                           .newInstance(antlrTool);
 
             readGrammarFileMethod = antlrHierarchyClass.getMethod("readGrammarFile", Helper.STRING_ARG_SIGNATURE);
             getFileMethod = antlrHierarchyClass.getMethod("getFile", Helper.STRING_ARG_SIGNATURE);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new MojoExecutionException("Unable to instantiate Antlr preprocessor tool", causeToUse(t));
         }
 
-        List<GrammarFile> files = new ArrayList<>();
-        for (int i = 0; i < grammars.length; i++) {
-            String grammarName = grammars[i].getName().trim();
+        final List<GrammarFile> files = new ArrayList<>();
+        for (final org.codehaus.mojo.antlr.options.Grammar value : grammars) {
+            final String grammarName = value.getName().trim();
             if (isEmpty(grammarName)) {
                 environment.getLog().info("Empty grammar in the configuration; skipping.");
                 continue;
             }
 
-            File grammar = new File(environment.getSourceDirectory(), grammarName);
+            final File grammar = new File(environment.getSourceDirectory(), grammarName);
 
             if (!grammar.exists()) {
                 throw new MojoExecutionException("The grammar '" + grammar.getAbsolutePath() + "' doesnt exist.");
             }
 
-            String grammarFilePath = grammar.getPath();
-            GrammarFile grammarFile = new GrammarFile(
-                    grammarName, 
+            final String grammarFilePath = grammar.getPath();
+            final GrammarFile grammarFile = new GrammarFile(
+                    grammarName,
                     grammarFilePath,
-                    isNotEmpty(grammars[i].getGlib()) ? split(grammars[i].getGlib(), ":,") : new String[0]);
+                    isNotEmpty(value.getGlib()) ? split(value.getGlib(), ":,") : new String[0]);
 
             // :( antlr.preprocessor.GrammarFile's only access to package is through a protected field :(
-            try (BufferedReader in = new BufferedReader(new FileReader(grammar))) {
-                
+            try (final BufferedReader in = new BufferedReader(new FileReader(grammar))) {
+
                 String line;
                 while ((line = in.readLine()) != null) {
                     line = line.trim();
@@ -83,28 +83,27 @@ public class MetadataExtracter {
                         break;
                     }
                 }
-            }
-            catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
 
             files.add(grammarFile);
 
             try {
-                readGrammarFileMethod.invoke(hierarchy, new Object[] { grammarFilePath });
-            } catch (Throwable t) {
+                readGrammarFileMethod.invoke(hierarchy, grammarFilePath);
+            } catch (final Throwable t) {
                 throw new MojoExecutionException("Unable to use Antlr preprocessor to read grammar file", causeToUse(t));
             }
         }
 
-        XRef xref = new XRef(hierarchy);
-        for (GrammarFile gf : files) {
-            String grammarFilePath = gf.getFileName();
+        final XRef xref = new XRef(hierarchy);
+        for (final GrammarFile gf : files) {
+            final String grammarFilePath = gf.getFileName();
             try {
-                Object antlrGrammarFileDef = getFileMethod.invoke(hierarchy, new Object[] { grammarFilePath });
+                final Object antlrGrammarFileDef = getFileMethod.invoke(hierarchy, grammarFilePath);
                 intrepretMetadata(gf, antlrGrammarFileDef);
                 xref.addGrammarFile(gf);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 throw new MojoExecutionException("Unable to build grammar metadata", causeToUse(t));
             }
         }
@@ -112,50 +111,49 @@ public class MetadataExtracter {
         return xref;
     }
 
-    private void intrepretMetadata(GrammarFile grammarFile, Object antlrGrammarFileDef) throws MojoExecutionException {
+    private void intrepretMetadata(final GrammarFile grammarFile, final Object antlrGrammarFileDef) throws MojoExecutionException {
         try {
-            Object grammarsVector = helper.getAntlrGrammarFileClass()
+            final Object grammarsVector = helper.getAntlrGrammarFileClass()
                                           .getMethod("getGrammars", NO_ARG_SIGNATURE)
                                           .invoke(antlrGrammarFileDef, NO_ARGS);
 
-            @SuppressWarnings("unchecked")
-            Enumeration<Object> grammars = (Enumeration<Object>) 
+            @SuppressWarnings("unchecked") final Enumeration<Object> grammars = (Enumeration<Object>)
                                     helper.getAntlrIndexedVectorClass()
                                           .getMethod("elements", NO_ARG_SIGNATURE)
                                           .invoke(grammarsVector, NO_ARGS);
             
             while (grammars.hasMoreElements()) {
-                Grammar grammar = new Grammar(grammarFile);
+                final Grammar grammar = new Grammar(grammarFile);
                 intrepret(grammar, grammars.nextElement());
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new MojoExecutionException("Error attempting to access grammars within grammar file", t);
         }
     }
 
-    private void intrepret(Grammar grammar, Object antlrGrammarDef) throws MojoExecutionException {
+    private void intrepret(final Grammar grammar, final Object antlrGrammarDef) throws MojoExecutionException {
         try {
-            Method getNameMethod = helper.getAntlrGrammarClass().getDeclaredMethod("getName", NO_ARG_SIGNATURE);
+            final Method getNameMethod = helper.getAntlrGrammarClass().getDeclaredMethod("getName", NO_ARG_SIGNATURE);
             getNameMethod.setAccessible(true);
-            String name = (String) getNameMethod.invoke(antlrGrammarDef, NO_ARGS);
+            final String name = (String) getNameMethod.invoke(antlrGrammarDef, NO_ARGS);
             grammar.setClassName(name);
 
-            Method getSuperGrammarNameMethod = helper.getAntlrGrammarClass().getMethod("getSuperGrammarName", NO_ARG_SIGNATURE);
+            final Method getSuperGrammarNameMethod = helper.getAntlrGrammarClass().getMethod("getSuperGrammarName", NO_ARG_SIGNATURE);
             getSuperGrammarNameMethod.setAccessible(true);
-            String superGrammarName = (String) getSuperGrammarNameMethod.invoke(antlrGrammarDef, NO_ARGS);
+            final String superGrammarName = (String) getSuperGrammarNameMethod.invoke(antlrGrammarDef, NO_ARGS);
             grammar.setSuperGrammarName(superGrammarName);
 
-            Method getOptionsMethod = helper.getAntlrGrammarClass().getMethod("getOptions", NO_ARG_SIGNATURE);
+            final Method getOptionsMethod = helper.getAntlrGrammarClass().getMethod("getOptions", NO_ARG_SIGNATURE);
             getOptionsMethod.setAccessible(true);
-            Object options = getOptionsMethod.invoke(antlrGrammarDef, NO_ARGS);
+            final Object options = getOptionsMethod.invoke(antlrGrammarDef, NO_ARGS);
 
-            Method getElementMethod = helper.getAntlrIndexedVectorClass().getMethod("getElement", new Class[] { Object.class });
+            final Method getElementMethod = helper.getAntlrIndexedVectorClass().getMethod("getElement", Object.class);
             getElementMethod.setAccessible(true);
 
-            Method getRHSMethod = helper.getAntlrOptionClass().getMethod("getRHS", NO_ARG_SIGNATURE);
+            final Method getRHSMethod = helper.getAntlrOptionClass().getMethod("getRHS", NO_ARG_SIGNATURE);
             getRHSMethod.setAccessible(true);
 
-            Object importVocabOption = getElementMethod.invoke(options, new Object[] { "importVocab" });
+            final Object importVocabOption = getElementMethod.invoke(options, "importVocab");
             if (importVocabOption != null) {
                 String importVocab = (String) getRHSMethod.invoke(importVocabOption, NO_ARGS);
                 if (importVocab != null) {
@@ -167,7 +165,7 @@ public class MetadataExtracter {
                 }
             }
 
-            Object exportVocabOption = getElementMethod.invoke(options, new Object[] { "exportVocab" });
+            final Object exportVocabOption = getElementMethod.invoke(options, "exportVocab");
             if (exportVocabOption != null) {
                 String exportVocab = (String) getRHSMethod.invoke(exportVocabOption, NO_ARGS);
                 if (exportVocab != null) {
@@ -178,12 +176,12 @@ public class MetadataExtracter {
                 }
                 grammar.setExportVocab(exportVocab);
             }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new MojoExecutionException("Error accessing  Antlr grammar metadata", t);
         }
     }
 
-    private Throwable causeToUse(Throwable throwable) {
+    private Throwable causeToUse(final Throwable throwable) {
         if (throwable instanceof InvocationTargetException) {
             return ((InvocationTargetException) throwable).getTargetException();
         }

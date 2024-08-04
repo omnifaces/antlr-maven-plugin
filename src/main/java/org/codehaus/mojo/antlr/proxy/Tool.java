@@ -32,10 +32,10 @@ public class Tool {
 
     private final Object antlrTool;
 
-    public Tool(Environment environment, Helper helper) throws MojoExecutionException {
+    public Tool(final Environment environment, final Helper helper) throws MojoExecutionException {
         try {
             antlrTool = helper.getAntlrToolClass().newInstance();
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             throw new MojoExecutionException("Unable to instantiate antlr.Tool", t);
         }
         this.environment = environment;

@@ -39,7 +39,7 @@ public class Grammar {
 
     private String exportVocab;
 
-    public Grammar(GrammarFile grammarFile) {
+    public Grammar(final GrammarFile grammarFile) {
         this.grammarFile = grammarFile;
         grammarFile.addGrammar(this);
     }
@@ -52,7 +52,7 @@ public class Grammar {
         return className;
     }
 
-    public void setClassName(String className) {
+    public void setClassName(final String className) {
         this.className = className;
     }
 
@@ -60,7 +60,7 @@ public class Grammar {
         return superGrammarName;
     }
 
-    public void setSuperGrammarName(String superGrammarName) {
+    public void setSuperGrammarName(final String superGrammarName) {
         this.superGrammarName = superGrammarName;
     }
 
@@ -68,7 +68,7 @@ public class Grammar {
         return importVocab;
     }
 
-    public void setImportVocab(String importVocab) {
+    public void setImportVocab(final String importVocab) {
         this.importVocab = importVocab;
     }
 
@@ -76,7 +76,7 @@ public class Grammar {
         return exportVocab;
     }
 
-    public void setExportVocab(String exportVocab) {
+    public void setExportVocab(final String exportVocab) {
         this.exportVocab = exportVocab;
     }
 

@@ -43,14 +43,14 @@ public class GenerationPlanBuilder {
 
     private XRef metadataXRef;
 
-    public GenerationPlanBuilder(Environment environment) {
+    public GenerationPlanBuilder(final Environment environment) {
         this.environment = environment;
     }
 
     public synchronized List buildGenerationPlans(XRef metadataXRef) {
         this.metadataXRef = metadataXRef;
 
-        Iterator grammarFiles = metadataXRef.iterateGrammarFiles();
+        final Iterator<GrammarFile> grammarFiles = metadataXRef.iterateGrammarFiles();
         while (grammarFiles.hasNext()) {
             final GrammarFile grammarFile = (GrammarFile) grammarFiles.next();
             // NOTE : loacteOrBuildGenerationPlan populates the generationPlans map
@@ -61,7 +61,7 @@ public class GenerationPlanBuilder {
         return new ArrayList(generationPlans.values());
     }
 
-    private GenerationPlan loacteOrBuildGenerationPlan(GrammarFile grammarFile) {
+    private GenerationPlan loacteOrBuildGenerationPlan(final GrammarFile grammarFile) {
         GenerationPlan generationPlan = (GenerationPlan) generationPlans.get(grammarFile.getId());
         if (generationPlan == null) {
             generationPlan = buildGenerationPlan(grammarFile);
@@ -69,14 +69,14 @@ public class GenerationPlanBuilder {
         return generationPlan;
     }
 
-    private GenerationPlan buildGenerationPlan(GrammarFile grammarFile) {
-        File generationDirectory = StringUtils.isEmpty(grammarFile.getPackageName()) ? environment.getOutputDirectory()
+    private GenerationPlan buildGenerationPlan(final GrammarFile grammarFile) {
+        final File generationDirectory = StringUtils.isEmpty(grammarFile.getPackageName()) ? environment.getOutputDirectory()
                 : new File(environment.getOutputDirectory(), grammarFile.getPackageName().replace('.', File.separatorChar));
 
-        GenerationPlan generationPlan = new GenerationPlan(grammarFile.getId(), new File(grammarFile.getFileName()), generationDirectory,
+        final GenerationPlan generationPlan = new GenerationPlan(grammarFile.getId(), new File(grammarFile.getFileName()), generationDirectory,
                 grammarFile.getGlibs());
 
-        File leastRecentGrammarOutput = locateLeastRecentlyModifiedOutputFile(generationDirectory);
+        final File leastRecentGrammarOutput = locateLeastRecentlyModifiedOutputFile(generationDirectory);
 
         // see if the grammar is out-of-date by way super-grammars from user defined glib options
         for (int i = 0; i < grammarFile.getGlibs().length; i++) {
@@ -89,9 +89,7 @@ public class GenerationPlanBuilder {
             }
         }
 
-        Iterator grammars = grammarFile.getGrammars().iterator();
-        while (grammars.hasNext()) {
-            final Grammar grammar = (Grammar) grammars.next();
+        for (final Grammar grammar : grammarFile.getGrammars()) {
             final File generatedParserFile = new File(environment.getOutputDirectory(), grammar.determineGeneratedParserPath());
 
             if (!generatedParserFile.exists()) {
@@ -138,12 +136,12 @@ public class GenerationPlanBuilder {
         return generationPlan;
     }
 
-    private static File locateLeastRecentlyModifiedOutputFile(File directory) {
+    private static File locateLeastRecentlyModifiedOutputFile(final File directory) {
         if (!directory.exists()) {
             return null;
         }
 
-        File[] contents = directory.listFiles();
+        final File[] contents = directory.listFiles();
         if (contents.length == 0) {
             return null;
         }

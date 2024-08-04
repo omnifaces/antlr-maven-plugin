@@ -59,7 +59,7 @@ public class AntlrPlugin extends AbstractAntlrMojo {
     /**
      * @see org.codehaus.mojo.antlr.AbstractAntlrMojo#addArgs(java.util.List)
      */
-    protected void addArgs(List arguments) {
+    protected void addArgs(final List arguments) {
         // nop
     }
 }

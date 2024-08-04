@@ -32,11 +32,11 @@ import java.util.Iterator;
 public class XRef {
     private final Object antlrHierarchy;
 
-    private LinkedHashMap<String, GrammarFile> filesById = new LinkedHashMap<>();
-    private Map<String, GrammarFile> filesByExportVocab = new HashMap<>();
-    private Map<String, GrammarFile> filesByClassName = new HashMap<>();
+    private final LinkedHashMap<String, GrammarFile> filesById = new LinkedHashMap<>();
+    private final Map<String, GrammarFile> filesByExportVocab = new HashMap<>();
+    private final Map<String, GrammarFile> filesByClassName = new HashMap<>();
 
-    public XRef(Object antlrHierarchy) {
+    public XRef(final Object antlrHierarchy) {
         this.antlrHierarchy = antlrHierarchy;
     }
 
@@ -44,13 +44,13 @@ public class XRef {
         return antlrHierarchy;
     }
 
-    void addGrammarFile(GrammarFile grammarFile) {
+    void addGrammarFile(final GrammarFile grammarFile) {
         filesById.put(grammarFile.getId(), grammarFile);
         
-        for (Grammar grammar : grammarFile.getGrammars()) {
+        for (final Grammar grammar : grammarFile.getGrammars()) {
             filesByClassName.put(grammar.getClassName(), grammarFile);
             if (grammar.getExportVocab() != null) {
-                GrammarFile old = filesByExportVocab.put(grammar.getExportVocab(), grammarFile);
+                final GrammarFile old = filesByExportVocab.put(grammar.getExportVocab(), grammarFile);
                 if (old != null && old != grammarFile) {
                     System.out.println("[WARNING] : multiple grammars defined the same exportVocab : " + grammar.getExportVocab());
                 }
@@ -62,15 +62,15 @@ public class XRef {
         return filesById.values().iterator();
     }
 
-    public GrammarFile getGrammarFileById(String id) {
-        return (GrammarFile) filesById.get(id);
+    public GrammarFile getGrammarFileById(final String id) {
+        return filesById.get(id);
     }
 
-    public GrammarFile getGrammarFileByClassName(String className) {
-        return (GrammarFile) filesByClassName.get(className);
+    public GrammarFile getGrammarFileByClassName(final String className) {
+        return filesByClassName.get(className);
     }
 
-    public GrammarFile getGrammarFileByExportVocab(String exportVocab) {
-        return (GrammarFile) filesByExportVocab.get(exportVocab);
+    public GrammarFile getGrammarFileByExportVocab(final String exportVocab) {
+        return filesByExportVocab.get(exportVocab);
     }
 }

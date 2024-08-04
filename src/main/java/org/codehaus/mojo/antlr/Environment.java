@@ -29,9 +29,9 @@ import org.apache.maven.plugin.logging.Log;
  * @author Steve Ebersole
  */
 public interface Environment {
-    public Log getLog();
+    Log getLog();
 
-    public File getSourceDirectory();
+    File getSourceDirectory();
 
-    public File getOutputDirectory();
+    File getOutputDirectory();
 }

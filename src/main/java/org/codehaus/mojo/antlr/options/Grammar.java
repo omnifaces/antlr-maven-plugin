@@ -46,7 +46,7 @@ public class Grammar implements java.io.Serializable {
      * 
      * @param glib
      */
-    public void setGlib(String glib) {
+    public void setGlib(final String glib) {
         this.glib = glib;
     }
 
@@ -62,7 +62,7 @@ public class Grammar implements java.io.Serializable {
      * 
      * @param name
      */
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -71,7 +71,7 @@ public class Grammar implements java.io.Serializable {
      * 
      * @param other
      */
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (this == other) {
             return true;
         }
@@ -80,7 +80,7 @@ public class Grammar implements java.io.Serializable {
             return false;
         }
 
-        Grammar that = (Grammar) other;
+        final Grammar that = (Grammar) other;
         boolean result = true;
         result = result && (getName() == null ? that.getName() == null : getName().equals(that.getName()));
         result = result && (getGlib() == null ? that.getGlib() == null : getGlib().equals(that.getGlib()));
@@ -102,18 +102,17 @@ public class Grammar implements java.io.Serializable {
      * Method toString
      */
     public java.lang.String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append("name = '");
-        buf.append(getName() + "'");
-        buf.append("\n");
-        buf.append("glib = '");
-        buf.append(getGlib() + "'");
-        return buf.toString();
+        final String buf = "name = '" +
+                getName() + "'" +
+                "\n" +
+                "glib = '" +
+                getGlib() + "'";
+        return buf;
     } // -- java.lang.String toString()
 
     private String modelEncoding = "UTF-8";
 
-    public void setModelEncoding(String modelEncoding) {
+    public void setModelEncoding(final String modelEncoding) {
         this.modelEncoding = modelEncoding;
     }
 
